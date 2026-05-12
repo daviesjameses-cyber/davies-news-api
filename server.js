@@ -1,34 +1,18 @@
 const express = require('express');
+const axios = require('axios');
 const cors = require('cors');
-const fetch = require('node-fetch');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.use(cors()); // This allows your HTML site to talk to this server
 
-const NEWS_API_KEY = process.env.NEWS_API_KEY;
+app.get('/', async (req, res) => {
+  const category = req.query.category || 'general';
+  const apiKey = process.env.NEWS_API_KEY; // We will hide your key here
+  const url = `https://newsapi.org{category}&apiKey=${apiKey}`;
 
-app.get('/api/news', async (req, res) => {
   try {
-    const { category = 'general', country = 'ng', pageSize = 20, q } = req.query;
-    
-    if (!NEWS_API_KEY) {
-      return res.status(500).json({ 
-        status: 'error', 
-        message: 'NEWS_API_KEY environment variable not set' 
-      });
-    }
-
-    let url;
-    if (q) {
-      url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&apiKey=${NEWS_API_KEY}&pageSize=${pageSize}`;
-    } else {
-      url = `https://newsapi.org/v2/top-headlines?category=${category}&country=${country}&apiKey=${NEWS_API_KEY}&pageSize=${pageSize}`;
-    }
-
-    const response = await fetch(url);
-    const data = await response.json();
-    res.json(data);
+    const response = await axios.get(url);
+    res.json(response.data);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
