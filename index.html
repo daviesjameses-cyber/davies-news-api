@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Davies Global News</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  body { background: #f4f6f8; color: #222; line-height: 1.6; }
+  
+  header { 
+    background: #0d47a1; 
+    color: white; 
+    padding: 20px; 
+    text-align: center; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  header h1 { font-size: 28px; }
+  header p { font-size: 14px; opacity: 0.9; margin-top: 5px; }
+  
+  nav {
+    background: #1565c0;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  nav button {
+    background: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #1565c0;
+    transition: 0.2s;
+  }
+  nav button:hover, nav button.active {
+    background: #ffca28;
+    color: #222;
+  }
+  
+  .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; }
+  
+  #loader { text-align: center; padding: 40px; font-size: 18px; color: #555; }
+  
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .news-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+  .news-card:hover { transform: translateY(-5px); }
+  .news-card img { width: 100%; height: 180px; object-fit: cover; }
+  .news-content { padding: 15px; }
+  .news-content h3 { font-size: 18px; margin-bottom: 8px; color: #0d47a1; }
+  .news-content p { font-size: 14px; color: #555; margin-bottom: 10px; }
+  .news-content small { color: #888; }
+  .news-content a { 
+    display: inline-block; 
+    margin-top: 10px; 
+    color: #1565c0; 
+    text-decoration: none; 
+    font-weight: 600; 
+  }
+  .news-content a:hover { text-decoration: underline; }
+  
+  footer {
+    text-align: center;
+    padding: 20px;
+    background: #0d47a1;
+    color: white;
+    margin-top: 40px;
+  }
+  
+  .error {
+    text-align: center;
+    padding: 40px;
+    color: #d32f2f;
+    background: #ffebee;
+    border-radius: 8px;
+  }
+  
+  @media(max-width: 600px) {
+    header h1 { font-size: 22px; }
+    .news-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Davies Global News</h1>
+  <p>Latest headlines from around the world</p>
+</header>
+
+<nav>
+  <button class="active" onclick="loadNews('general', event)">General</button>
+  <button onclick="loadNews('technology', event)">Technology</button>
+  <button onclick="loadNews('sports', event)">Sports</button>
+  <button onclick="loadNews('business', event)">Business</button>
+  <button onclick="loadNews('health', event)">Health</button>
+</nav>
+
+<div class="container">
+  <div id="loader">Loading news...</div>
+  <div class="news-grid" id="newsGrid" style="display:none;"></div>
+  <div id="errorMsg" style="display:none;"></div>
+</div>
+
+<footer>
+  <p>&copy; 2026 Davies Global News. All rights reserved.</p>
+</footer>
+
+<script>
+// Change this to your actual backend URL once deployed
+const PROXY_URL = "https://davies-news-api.onrender.com/";
+
+const NEWS_GRID = document.getElementById('newsGrid');
+const LOADER = document.getElementById('loader');
+const ERROR_MSG = document.getElementById('errorMsg');
+const BUTTONS = document.querySelectorAll('nav button');
+
+async function loadNews(category = 'general', event) {
+  // Update active button
+  BUTTONS.forEach(btn => btn.classList.remove('active'));
+  if (event) event.target.classList.add('active');
+  
+  LOADER.style.display = 'block';
+  NEWS_GRID.style.display = 'none';
+  ERROR_MSG.style.display = 'none';
+  NEWS_GRID.innerHTML = '';
+  
+  const URL = fetch(`${PROXY_URL}?q=nigeria&category=${category}`)
+  
+  try {
+    const response = await fetch(URL);
+    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    
+    const data = await response.json();
+    
+    if (data.status !== 'ok') {
+      throw new Error(data.message || 'Failed to fetch news');
+    }
+    
+    if (!data.articles || data.articles.length === 0) {
+      throw new Error('No news found for this category');
+    }
+    
+    displayNews(data.articles);
+  } catch (err) {
+    LOADER.style.display = 'none';
+    ERROR_MSG.style.display = 'block';
+    ERROR_MSG.className = 'error';
+    ERROR_MSG.innerHTML = `
+      <h3>Couldn't load news</h3>
+      <p>${err.message}</p>
+      <p style="margin-top:10px; font-size:13px;">Make sure your backend proxy is running at ${PROXY_URL}</p>
+    `;
+  }
+}
+
+function displayNews(articles) {
+  LOADER.style.display = 'none';
+  NEWS_GRID.style.display = 'grid';
+  
+  articles.forEach(article => {
+    if (!article.title || article.title === '[Removed]') return;
+    
+    const card = document.createElement('div');
+    card.className = 'news-card';
+    
+    const img = article.urlToImage || 'https://via.placeholder.com/400x200?text=No+Image';
+    const date = new Date(article.publishedAt).toLocaleDateString();
+    const source = article.source.name || 'Unknown';
+    
+    card.innerHTML = `
+      <img src="${img}" alt="${article.title}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
+      <div class="news-content">
+        <h3>${article.title}</h3>
+        <p>${article.description || 'No description available.'}</p>
+        <small>${source} • ${date}</small>
+        <br>
+        <a href="${article.url}" target="_blank">Read More →</a>
+      </div>
+    `;
+    
+    NEWS_GRID.appendChild(card);
+  });
+}
+
+// Load general news on page load
+loadNews('general');
+</script>
+
+</body>
+</html>
