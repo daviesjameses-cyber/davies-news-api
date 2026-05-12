@@ -139,13 +139,19 @@ async function loadNews(category = 'general', event) {
   ERROR_MSG.style.display = 'none';
   NEWS_GRID.innerHTML = '';
   
-  const URL = fetch(`${PROXY_URL}?q=nigeria&category=${category}`)
+  async function loadNews(category = 'general', event) {
+  // ... (keep the button and loader code as is) ...
+
+  // FIX: Remove 'fetch' from this line. It should just be the text string.
+  const URL = `${PROXY_URL}?category=${category}`;
   
   try {
-    const response = await fetch(URL);
+    const response = await fetch(URL); // This line is now correct
     if (!response.ok) throw new Error(`Server error: ${response.status}`);
     
     const data = await response.json();
+    // ... (rest of the code) ...
+
     
     if (data.status !== 'ok') {
       throw new Error(data.message || 'Failed to fetch news');
