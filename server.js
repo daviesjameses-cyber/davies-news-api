@@ -11,7 +11,7 @@ app.get('/', async (req, res) => {
   const apiKey = process.env.NEWS_API_KEY; 
   
   // FIXED URL BELOW: Added /v2/top-headlines and corrected the ? and & symbols
-  const url = `https://newsapi.org{category}&apiKey=${apiKey}`;
+  const url = `https://thenewsapi.com{category}&apiKey=${apiKey}`;
 
   try {
     const response = await axios.get(url);
