@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Davies Global News</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
   body { background: #f4f6f8; color: #222; line-height: 1.6; }
   
   header { 
@@ -121,7 +121,6 @@
 </footer>
 
 <script>
-// Change this to your actual backend URL once deployed
 const PROXY_URL = "https://davies-news-api.onrender.com/";
 
 const NEWS_GRID = document.getElementById('newsGrid');
@@ -130,7 +129,7 @@ const ERROR_MSG = document.getElementById('errorMsg');
 const BUTTONS = document.querySelectorAll('nav button');
 
 async function loadNews(category = 'general', event) {
-  // Update active button
+  // Update UI State
   BUTTONS.forEach(btn => btn.classList.remove('active'));
   if (event) event.target.classList.add('active');
   
@@ -139,19 +138,13 @@ async function loadNews(category = 'general', event) {
   ERROR_MSG.style.display = 'none';
   NEWS_GRID.innerHTML = '';
   
-  async function loadNews(category = 'general', event) {
-  // ... (keep the button and loader code as is) ...
-
-  // FIX: Remove 'fetch' from this line. It should just be the text string.
   const URL = `${PROXY_URL}?category=${category}`;
   
   try {
-    const response = await fetch(URL); // This line is now correct
+    const response = await fetch(URL); 
     if (!response.ok) throw new Error(`Server error: ${response.status}`);
     
     const data = await response.json();
-    // ... (rest of the code) ...
-
     
     if (data.status !== 'ok') {
       throw new Error(data.message || 'Failed to fetch news');
@@ -185,8 +178,8 @@ function displayNews(articles) {
     card.className = 'news-card';
     
     const img = article.urlToImage || 'https://via.placeholder.com/400x200?text=No+Image';
-    const date = new Date(article.publishedAt).toLocaleDateString();
-    const source = article.source.name || 'Unknown';
+    const date = article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Recent';
+    const source = article.source && article.source.name ? article.source.name : 'Unknown Source';
     
     card.innerHTML = `
       <img src="${img}" alt="${article.title}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
@@ -203,7 +196,7 @@ function displayNews(articles) {
   });
 }
 
-// Load general news on page load
+// Initial load
 loadNews('general');
 </script>
 
