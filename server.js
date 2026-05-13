@@ -9,14 +9,14 @@ app.get('/', async (req, res) => {
   const category = req.query.category || 'general';
   const apiKey = process.env.NEWS_API_KEY; 
   
-  // FIX: Added 'api.' and the correct endpoint path
-  const url = `https://thenewsapi.com{apiKey}&categories=${category}&locale=us`;
+  // FIX: Corrected domain, path, query keys, and parameter naming
+  const url = `newsapi.org{category}&apiKey=${apiKey}`;
 
   try {
     const response = await axios.get(url);
     res.json({
       status: 'ok',
-      articles: response.data.data 
+      articles: response.data.articles // FIX: NewsAPI.org returns '.articles', not '.data'
     });
   } catch (error) {
     res.status(500).json({ 
